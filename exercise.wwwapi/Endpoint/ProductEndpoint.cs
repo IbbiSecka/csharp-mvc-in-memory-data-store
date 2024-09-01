@@ -9,10 +9,12 @@ namespace exercise.wwwapi.Endpoint
         public static void ConfigureProductEndpoint(this WebApplication app)
         {
             var prods = app.MapGroup("products");
-            prods.MapGet("/",GetProds);
             prods.MapPost("/", PostProd);
+            prods.MapGet("/",GetProds);
+            prods.MapGet("/{id}", GetOneProd);
+            prods.MapPut("/{id}", UpdateProd);
             prods.MapDelete("/{id}", DeleteProd);
-            prods.MapPut("/{id}", GetOneProd);
+            
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -30,7 +32,7 @@ namespace exercise.wwwapi.Endpoint
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
 
         public static IResult PostProd(IRepository repo, Product entity) {
-            if ()
+            if (repo.GetAllProds().Contains(entity))
             {
                 return TypedResults.BadRequest("Price must be an integer, something else was provided. / Product with provided name already exists");
 
@@ -39,21 +41,49 @@ namespace exercise.wwwapi.Endpoint
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public static IResult DeleteProd(IRepository repo, Guid id) {
+        public static IResult DeleteProd(IRepository repo, int id) {
             repo.DeleteProd(id);
             return TypedResults.Ok(repo);
         }
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public static IResult GetOneProd(IRepository repo, Guid id) {
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public static IResult GetOneProd(IRepository repo, int id) {
+
+            
+            var product = repo.GetProdById(id);
+            if (product == null)
+            {
+                return TypedResults.NotFound("Product not found");
+
+            }
             repo.GetProdById(id);
             return TypedResults.Ok(repo);
         }
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public static IResult UpdateProd(IRepository repo, Guid id, Product prod)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+
+        public static IResult UpdateProd(IRepository repo, int id, Product prod)
         {
+            if (repo.GetProdById(id) == null)
+            {
+                return TypedResults.NotFound("Product not found");
+            }
             
+            var existingProd = repo.GetAllProds().FirstOrDefault(p => p.Id == id);
+
+            if(prod.Name == existingProd.Name || prod.Price % 1 != 0)
+            {
+                return TypedResults.BadRequest("Product with provided name already exists / Price must be an integer.");
+            }
+            existingProd.Name = prod.Name;
+            existingProd.Category = prod.Category;
+            existingProd.Price = prod.Price;
+
+  
+
+            return TypedResults.Ok(existingProd);
+
 
         }
     }

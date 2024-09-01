@@ -9,5 +9,6 @@ namespace exercise.wwwapi.Repository
         Product UpdateProd(Product prod,int id);
         List<Product> DeleteProd(int id);
         Product GetProdById(int id);
+        List<Product> GetAllProds();
     }
 }

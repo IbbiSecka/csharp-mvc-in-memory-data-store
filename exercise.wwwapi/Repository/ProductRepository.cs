@@ -24,6 +24,10 @@ namespace exercise.wwwapi.Repository
             return _db.prods.ToList();
         }
 
+        public List<Product> GetAllProds() {
+            return _db.prods.ToList();
+        }
+
         public Product GetProdById(int id)
         {
             
